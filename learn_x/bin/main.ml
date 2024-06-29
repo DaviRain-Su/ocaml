@@ -284,6 +284,7 @@ let second_tuple = (3, 4);;
 (* print_endline (string_of_int (snd first_tuple));; *)
 (* print_endline (string_of_int (fst second_tuple));; *)
 (* print_endline (string_of_int (snd second_tuple));; *)
+
 (* 打印元组 *)
 Printf.printf "fst first_tuple = %d\n" (fst first_tuple);;
 Printf.printf "snd first_tuple = %d\n" (snd first_tuple);;
@@ -308,7 +309,7 @@ List.iter (fun (x, y) -> Printf.printf "(%d, %d) " x y) bad_list;;
   为了匹配一个元组，你需要将其括起来，就像你在定义元组时所做的那样。
 *)
 
-Printf.printf "\n"
+print_endline "";;
 
 let incorrect_list = [1, 2, 3]
 
@@ -322,3 +323,77 @@ let () =
   在OCaml中，数组（Arrays）使用 [| 和 |] 括起来，数组项之间用分号 ; 分隔。
   与列表不同，数组是可变的，这意味着你可以在数组中添加、删除或更新元素。
 *)
+
+(*
+  如果在OCaml中试图用逗号 , 来分隔列表项，你会得到一个包含元组的列表，这通常不是你所期望的结果。
+*)
+let bad_list = [1, 2];; (* Has type "(int * int) list" *)
+(* print_endline (string_of_int (List.length bad_list));; *)
+Printf.printf "List.length bad_list = %d\n" (List.length bad_list);;
+
+(* 打印每个元组 *)
+List.iter (fun (x, y) -> Printf.printf "(%d, %d) " x y) bad_list;;
+
+print_endline "";;
+
+(*
+  在OCaml中，可以使用 List.nth 函数来访问列表中的单个元素。List.nth 函数接收一个列表和一个索引，返回该索引处的元素。值得注意的是，OCaml列表的索引是从0开始的。
+*)
+Printf.printf "List.nth my_list 1 = %d\n" (List.nth my_list 1);;
+
+(*
+  在OCaml中，列表操作非常强大，尤其是通过高阶函数（higher-order functions）如 map 和 filter 可以方便地进行列表处理。
+*)
+
+let result_list = List.map (fun x -> x * 2) my_list;;
+let rl = List.filter (fun x -> x mod 2 = 0) my_list;;
+
+(* 打印每个元素 *)
+List.iter (fun x -> Printf.printf "%d " x) result_list;;
+print_endline "";;
+
+(* 打印每个元素 *)
+List.iter (fun x -> Printf.printf "%d " x) rl;;
+print_endline "";;
+
+(*
+  在OCaml中，可以使用 :: 构造符（通常称为 "cons"）将一个元素添加到列表的开头。这个操作是非常常见的基本列表操作。
+*)
+
+let new_list = 1 :: [2; 3];;
+(* 打印每个元素 *)
+List.iter (fun x -> Printf.printf "%d " x) new_list;;
+print_endline "";;
+
+(*
+  :: 构造符只能将单个元素添加到列表的开头。如果需要将两个列表结合起来，需要使用 @ 操作符，它可以将两个列表连接成一个新的列表。
+*)
+
+let combined_list = [1; 2] @ [3; 4];;
+(* 打印每个元素 *)
+List.iter (fun x -> Printf.printf "%d " x) combined_list;;
+print_endline "";;
+
+(*
+  在OCaml中，可以使用 List.rev 函数来反转列表中的元素。
+*)
+
+let reversed_list = List.rev my_list;;
+(* 打印每个元素 *)
+List.iter (fun x -> Printf.printf "%d " x) reversed_list;;
+print_endline "";;
+
+(*
+  在OCaml中，数组（arrays）是一种常用的数据结构，可以通过 |[]| 语法来定义和访问。与列表不同，数组允许你在常数时间内随机访问和修改元素。
+*)
+let my_array = [|1; 2; 3|];;
+
+(* 打印每个元素 *)
+Array.iter (fun x -> Printf.printf "%d " x) my_array;;
+print_endline "";;
+
+(*
+  在OCaml中，可以通过索引来访问和修改数组中的元素。数组的索引从0开始，使用 array.(index) 语法来进行访问和修改。
+*)
+
+Printf.printf "my_array.(1) = %d\n" my_array.(1);;
