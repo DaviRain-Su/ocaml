@@ -593,3 +593,86 @@ let rec display_tree = function
     display_tree right;;
 
 display_tree my_tree;;
+
+print_endline "";;
+
+(*
+  Records
+*)
+
+(* 一个具有命名字段的值的集合 *)
+
+(*
+type animal =
+  {
+    name : string;
+    age : int;
+    species : string;
+  };; (* type animal = { name : string; age : int; species : string } *)
+
+let my_pet = {name = "Bobby"; age = 3; species = "Dog"} ;;
+
+let display_animal a =
+  Printf.printf "Name: %s\n" a.name;
+  Printf.printf "Age: %d\n" a.age;
+  Printf.printf "Species: %s\n" a.species;;
+
+display_animal my_pet;;
+
+*)
+
+(*** Pattern matching ***)
+
+(*
+模式匹配在某种程度上类似于命令式语言中的switch语句，但提供了更强大的表达能力。
+
+尽管看起来可能很复杂，但它实际上归结为将参数与精确值、谓词或类型构造器进行匹配。
+类型系统是使它如此强大的原因。
+*)
+
+(* Matching exact values.  *)
+
+let is_zero x = match x with
+  | 0 -> true
+  | _ -> false;; (* _ 是通配符 *)
+
+Printf.printf "is_zero 0 = %b\n" (is_zero 0);;
+
+(*
+  或者，你可以使用 "function" 关键字。
+  function 关键字是OCaml中用于创建匿名函数并立即进行模式匹配的简便方法。它等价于使用 match ... with 结构，但语法更加简洁。
+*)
+
+let is_zero = function
+  | 0 -> true
+  | _ -> false;;
+
+Printf.printf "is_zero 0 = %b\n" (is_zero 0);;
+
+(* 匹配谓词，也称为"带守卫的模式匹配"。 *)
+
+
+
+let abs x =
+  match x with
+    | x when x < 0 -> -x
+    | x -> x
+;;
+
+let result = abs (-3);;
+Printf.printf "abs (-3) = %d\n" result;;
+
+(* 匹配类型构造器 *)
+
+type animal = Dog of string | Cat of string ;;
+
+let say x =
+  match x with
+  | Dog x -> x ^ " says Woof!"
+  | Cat x -> x ^ " say meow"
+;;
+
+let dog = say (Dog "Bobby");;
+Printf.printf "%s\n" dog;;
+let cat = say (Cat "mow");;
+Printf.printf "%s\n" cat;;
