@@ -676,3 +676,197 @@ let dog = say (Dog "Bobby");;
 Printf.printf "%s\n" dog;;
 let cat = say (Cat "mow");;
 Printf.printf "%s\n" cat;;
+
+(* 然而，模式匹配必须是穷尽的 *)
+type color = Red | Green | Blue ;;
+let what_color = function
+  | Red -> "Red"
+  | Green -> "Green"
+  | Blue -> "Blue"
+;;
+
+let color_red = what_color Red;;
+let color_green = what_color Green;;
+let color_blue = what_color Blue;;
+Printf.printf "color = %s\n" color_red;;
+Printf.printf "color = %s\n" color_green;;
+Printf.printf "color = %s\n" color_blue;;
+
+(*
+let what_color x =
+   match x with
+   | Red -> "color is red"
+   | Blue -> "color is blue"
+   (* Won't compile! You have to add a _ case or a Green case
+      to ensure all possibilities are accounted for *)
+;;
+*)
+
+(*
+  另外，match语句按顺序检查每个情况。
+  所以，如果一个 _ 情况出现在最前面，后面的所有情况都将无法被匹配到！
+*)
+
+(*
+  如果没有穷尽模式匹配，OCaml会发出警告。
+  为了避免这种情况，可以使用 "_" 通配符来匹配所有其他情况。
+*)
+
+(* 使用模式匹配遍历数据结构 *)
+
+(*
+  递归类型可以通过模式匹配轻松遍历。
+  让我们看看如何遍历内置列表类型的数据结构。
+  尽管内置的cons运算符（"::"）看起来像一个中缀运算符，
+  但它实际上是一个类型构造器，可以像其他构造器一样进行匹配。
+*)
+
+(*
+let rec sum_list l =
+    match l with
+    | [] -> 0
+    | head :: tail -> head + (sum_list tail)
+;;
+*)
+let rec sum_list = function
+  | [] -> 0
+  | x :: xs -> x + sum_list xs;;
+
+let sum = sum_list [1; 2; 3; 4; 5];;
+Printf.printf "sum = %d\n" sum;;
+
+(*
+  内置的cons语法稍微模糊了结构，所以我们将创建自己的列表来进行演示。
+*)
+type int_list = Nil | Cons of int * int_list ;;
+let my_int_list = Cons (1, Cons (2, Cons (3, Cons (4, Nil)))) ;;
+
+let rec sum_int_list = function
+  | Nil -> 0
+  | Cons (x, xs) -> x + sum_int_list xs;;
+let sum = sum_int_list my_int_list;;
+Printf.printf "sum = %d\n" sum;;
+
+(*
+  实现一个检查列表是否已排序的函数
+*)
+let rec is_sorted l = match l with
+  | x :: y :: tail -> x <= y && is_sorted (y :: tail)
+  | _ -> true;;
+
+let sorted = is_sorted [1; 2; 3; 4; 5];;
+Printf.printf "sorted = %b\n" sorted;;
+
+(*
+  OCaml强大的类型推断猜测 l 的类型是 int list，
+  因为 <= 运算符被用于 l 的元素上
+*)
+
+(* 反转list *)
+let rec rev (l: 'a list): 'a list =
+  match l with
+  | [] -> []
+  | x :: xs -> rev xs @ [x];; (* @ 是连接操作符 *)
+
+let reversed = rev [1; 2; 3; 4; 5];;
+Printf.printf "reversed = %s\n" (String.concat " " (List.map string_of_int reversed));;
+(* 这个函数可以适用于任何元素类型的列表 *)
+
+(*** 高阶函数 ***)
+
+(** 函数在OCaml中是一等公民 **)
+
+let rec transform (f: 'a -> 'b) (l: 'a list): 'b list =
+  match l with
+  | [] -> []
+  | x :: xs -> f x :: transform f xs ;;
+
+let double = transform (fun x -> x * 2) [1; 2; 3; 4; 5];;
+Printf.printf "double = %s\n" (String.concat " " (List.map string_of_int double));;
+
+(*
+  让我们来综合运用我们学到的所有概念
+*)
+let rec filter (pred: 'a -> bool) (l: 'a list): 'a list =
+  begin match l with
+  | [] -> []
+  | x :: xs ->
+    let rest = filter pred xs in
+    if pred x then x :: rest else rest
+  end
+;;
+
+(*
+  在这里，in 后面使用的 rest 就是在 let 绑定中定义的 rest。让我详细解释：
+
+  作用域：
+    let 绑定创建了一个新的作用域。
+    in 关键字后面的表达式是这个新作用域的主体。
+  绑定顺序：
+    首先，filter pred xs 被求值，其结果被绑定到 rest。
+    然后，in 后面的表达式在知道 rest 的值的情况下被求值。
+  rest 的使用：
+    在条件语句 if pred x then x :: rest else rest 中，两次使用的 rest 都是指向刚刚通过 let 绑定创建的 rest。
+  闭包效果：
+    这种结构创建了一个小的闭包，其中 rest 在 if 语句中可用
+*)
+
+let result = filter (fun x -> x mod 2 = 0) [1; 2; 3; 4; 5];;
+Printf.printf "result = %s\n" (String.concat " " (List.map string_of_int result));;
+
+(*
+  你可以使用高阶函数来创建更高阶的函数。
+  例如，我们可以使用 filter 函数来实现一个函数，该函数接受一个谓词函数和一个列表，
+  并返回一个新列表，其中包含所有满足谓词的元素。
+*)
+
+(*** Mutability ***)
+
+(* 记录和变量是不可变的：你不能改变变量指向的对象 *)
+
+(** 尽管 OCaml 主要强调不可变性，但它也提供了创建可变字段的能力，包括多态可变字段 **)
+
+type counter = { mutable count: int };;
+let c = { count = 0 };; (* 创建记录 *)
+Printf.printf "c.count = %d\n" c.count;;
+c.count <- 1;; (* 修改可变字段 *)
+Printf.printf "c.count = %d\n" c.count;;
+
+(*
+  请注意，我们使用 <- 运算符来修改可变字段。
+  请注意，我们使用 { count = 0 } 来创建记录。
+  这是一种简写，它等同于 { count = 0; }。
+*)
+
+(* OCaml 的标准库确实提供了 ref 类型，这是一种更简单、更常用的方式来实现单字段的可变性。 *)
+
+(* type 'a ref = { mutable contents: 'a };;*)
+(*
+  davirian@daviriandeMBP learn_x % dune exec learn_x
+  File "bin/main.ml", line 843, characters 0-38:
+  843 | type 'a ref = { mutable contents: 'a };;
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Error (warning 34 [unused-type-declaration]): unused type ref.
+
+  File "bin/main.ml", line 843, characters 16-36:
+  843 | type 'a ref = { mutable contents: 'a };;
+  ^^^^^^^^^^^^^^^^^^^^
+  Error (warning 69 [unused-field]): unused record field contents.
+
+  这些警告出现的原因是：
+
+  OCaml 标准库已经定义了 ref 类型，您不需要再次定义它。
+  您的代码中使用的 ref、! 和 := 实际上是使用的标准库中的定义，而不是您自己定义的类型。
+*)
+let counter = ref 0;; (* 创建一个引用 *)
+Printf.printf "counter.contents = %d\n" counter.contents;;
+Printf.printf "counter.contents = %d\n" !counter;; (* 读取引用的内容 *)
+counter := !counter + 1;; (* 修改引用的内容 *)
+Printf.printf "counter.contents = %d\n" !counter;;
+
+(*
+  请注意，我们使用 := 运算符来修改引用的内容。
+  请注意，我们使用 !counter 来读取引用的内容。
+  请注意，我们使用 ref 0 来创建引用。
+  这是一种简写，它等同于 { contents = 0; }。
+*)
