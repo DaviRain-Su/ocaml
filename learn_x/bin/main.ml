@@ -249,9 +249,9 @@ Printf.printf "~-.3.4 = %f\n" ( ~-. 3.4);;
   与Standard ML或Haskell不同，OCaml中只有某些符号可以用于操作符名称，
   并且操作符的首个符号决定了其结合性和优先级规则。
 *)
-let (+) a b = a - b ;; (* Surprise maintenance programmers. *)
+(* let (+) a b = a - b ;; (* Surprise maintenance programmers. *) *)
 (* print_endline (string_of_int (3 + 4));; *)
-Printf.printf "3 + 4 = %d\n" (3 + 4);;
+(* Printf.printf "3 + 4 = %d\n" (3 + 4);; *)
 
 (*
   定义一个用于浮点数的倒数操作符是一个非常实用的例子。在OCaml中，一元操作符必须以 ~ 开头，因此我们可以定义一个新的操作符 ~% 来表示浮点数的倒数。
@@ -445,3 +445,151 @@ print_string "Enter your name: ";;
 (* print_endline "Hello world" ;; *)
 let line = read_line ();;
 Printf.printf "Hello, %s!\n" line;;
+
+(*** 用户定义的数据类型 ***)
+
+(*
+  你可以使用 "type some_type =" 结构来定义类型。就像这个无用的类型别名：
+*)
+(* type my_int = int;; *)
+
+(*
+  更有趣的类型包括所谓的类型构造器。
+  构造器必须以大写字母开头。
+*)
+type ml = Ocaml | StandardML ;;
+let ocaml_lang = Ocaml ;; (* lang : ml = Ocaml *)
+let sml_lang = StandardML ;; (* lang : ml = StandardML *)
+
+(* Use Match deal with ML type *)
+let match_ml = function
+  | Ocaml -> Printf.printf "OCaml\n"
+  | StandardML -> Printf.printf "Standard ML\n";;
+
+match_ml ocaml_lang;;
+match_ml sml_lang;;
+
+(*
+  你可以使用 "type some_type = | Constructor1 | Constructor2" 来定义一个枚举类型。
+  枚举类型的值是有限的，只能是定义的构造器之一。
+*)
+
+(* 类型构造器不需要是空的。 *)
+type my_number = PlusInfinity | MinusInfinity | Real of float ;;
+
+let match_my_number = function
+  | PlusInfinity -> Printf.printf "+∞\n"
+  | MinusInfinity -> Printf.printf "-∞\n"
+  | Real x -> Printf.printf "Real %f\n" x;;
+
+let plus_inf = PlusInfinity ;; (* plus_inf : my_number = PlusInfinity *)
+let minus_inf = MinusInfinity ;; (* minus_inf : my_number = MinusInfinity *)
+let my_num = Real 3.14 ;; (* my_num : my_number = Real 3.14 *)
+
+match_my_number my_num;;
+match_my_number plus_inf;;
+match_my_number minus_inf;;
+
+(* 可以用来实现多态算术。*)
+type number = Int of int | Float of float ;;
+let match_number = function
+  | Int x -> Printf.printf "Int %d\n" x
+  | Float x -> Printf.printf "Float %f\n" x;;
+
+let add a b = match (a, b) with
+  | (Int x, Int y) -> Int (x + y)
+  | (Float x, Float y) -> Float (x +. y)
+  | (Int x, Float y) -> Float (float_of_int x +. y)
+  | (Float x, Int y) -> Float (x +. float_of_int y);;
+
+
+let int1 = Int 2 ;;
+let int2 = Int 2 ;;
+let sum = add int1 int2 ;;
+match_number sum;; (* Int 0 why is zero *)
+let float1 = Float 2.0 ;;
+let float2 = Float 2.0 ;;
+let sum = add float1 float2 ;;
+match_number sum;;
+
+(*
+  平面上的点，本质上是一个类型受限的元组
+*)
+
+type point2d = Point of float * float ;;
+let my_point = Point (3.0, 4.0) ;;
+
+(*
+let get_x = function
+  | Point (x, _) -> x;;
+let get_y = function
+  | Point (_, y) -> y;;
+*)
+let display_point = function
+  | Point (x, y) -> Printf.printf "(%f, %f)\n" x y;;
+
+display_point my_point;;
+
+(*
+  类型可以被参数化，就像这个"任意类型的列表的列表"类型。'a 可以被任何类型替代。
+*)
+
+type 'a list_of_lists = 'a list list ;;
+(* type int_list_of_lists = int list list ;; *)
+
+let my_list = [[1; 2]; [3; 4; 5]] ;;
+let my_list2 = [[1; 2]; [3; 4; 5]; [6; 7; 8]] ;;
+
+let count_elements (ll : 'a list_of_lists) : int =
+  List.fold_left (fun acc l -> acc + List.length l) 0 ll
+
+let n_int = count_elements my_list ;;
+Printf.printf "n_int = %d\n" n_int;;
+let n_int2 = count_elements my_list2 ;;
+Printf.printf "n_int2 = %d\n" n_int2;;
+
+(*
+  这些特性允许创建有用的可选类型
+*)
+type 'a option = None | Some of 'a ;;
+
+let display_option = function
+  | None -> Printf.printf "None\n"
+  | Some x -> Printf.printf "Some %d\n" x;;
+
+let x = Some 42 ;;
+let y = None ;;
+
+display_option x;;
+display_option y;;
+
+(*
+  类型也可以是递归的。就像这个类型，它类似于内置的整数列表。
+*)
+type my_int_list = EmptyList | IntList of int * my_int_list ;;
+let my_int_list = IntList (1, IntList (2, IntList (3, EmptyList))) ;;
+
+let rec display_int_list = function
+  | EmptyList -> Printf.printf "[]\n"
+  | IntList (x, xs) -> Printf.printf "%d :: " x; display_int_list xs;;
+
+display_int_list my_int_list;;
+
+(* Trees *)
+
+(*
+  二叉树是一个递归的数据结构，它可以用一个节点和两个子树来定义。
+  一个节点可以是一个叶子，也可以是一个有两个子节点的节点。
+*)
+
+type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree ;;
+let my_tree = Node (Node (Leaf, 2,  Leaf), 1 , Node (Leaf, 3, Leaf)) ;;
+
+let rec display_tree = function
+  | Leaf -> Printf.printf ""
+  | Node (left, x, right) ->
+    Printf.printf "%d " x;
+    display_tree left;
+    display_tree right;;
+
+display_tree my_tree;;
