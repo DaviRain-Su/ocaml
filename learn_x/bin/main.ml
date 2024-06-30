@@ -397,3 +397,51 @@ print_endline "";;
 *)
 
 Printf.printf "my_array.(1) = %d\n" my_array.(1);;
+
+(*** Strings and characters ***)
+
+(*
+  在OCaml中，字符串（strings）是一种不可变的数据结构，可以通过 "..." 语法来定义。字符串是由字符组成的列表，可以通过索引来访问和修改。
+*)
+let my_str = "Hello world!";;
+Printf.printf "my_str = %s\n" my_str;;
+
+(* 使用单引号表示字符字面值。 *)
+let my_char = 'a' ;;
+Printf.printf "my_char = %c\n" my_char;;
+
+(* 单引号和双引号是不可互换 *)
+(* let bad_str = 'syntax error';; (* Error: Syntax error *) *)
+
+(*
+  这会给你一个单字符的字符串，而不是一个字符。
+*)
+let single_cha_str = "a";;
+Printf.printf "single_cha_str = %s\n" single_cha_str;;
+
+
+(*
+  在OCaml中,字符串可以使用"^"操作符进行连接。
+*)
+let some_str = "hello" ^ " " ^ "world";;
+Printf.printf "some_str = %s\n" some_str;;
+
+(*
+  字符串不是字符数组。
+  你不能在表达式中混合使用字符和字符串。
+  你可以使用 "String.make 1 my_char" 将字符转换为字符串。
+  在一些额外的库（如 Core.Std）中有更方便的函数用于这个目的，但这些库可能默认没有安装和/或加载。
+*)
+let ocaml = (String.make 1 'O') ^ "Caml";;
+Printf.printf "ocaml = %s\n" ocaml;;
+
+(*
+  这是一个打印函数
+*)
+Printf.printf "%d %s\n" 99 "bottles of beer";;
+
+(* 还有未格式化的读取和写入函数。 *)
+print_string "Enter your name: ";;
+(* print_endline "Hello world" ;; *)
+let line = read_line ();;
+Printf.printf "Hello, %s!\n" line;;
