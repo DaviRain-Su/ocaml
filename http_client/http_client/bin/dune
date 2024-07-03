@@ -1,0 +1,4 @@
+(executable
+ (public_name http_client)
+ (name main)
+ (libraries http_client cohttp-lwt-unix tls))
