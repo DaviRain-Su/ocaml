@@ -1,0 +1,3 @@
+(test
+ (name test_real_ocaml_world)
+ (libraries real_ocaml_world ounit2))
